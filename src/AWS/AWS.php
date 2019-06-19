@@ -18,18 +18,18 @@ use kamerk22\AmazonGiftCode\Response\CreateResponse;
 
 class AWS
 {
-    public const SERVICE_NAME = 'AGCODService';
-    public const ACCEPT_HEADER = 'accept';
-    public const CONTENT_HEADER = 'content-type';
-    public const HOST_HEADER = 'host';
-    public const X_AMZ_DATE_HEADER = 'x-amz-date';
-    public const X_AMZ_TARGET_HEADER = 'x-amz-target';
-    public const AUTHORIZATION_HEADER = 'Authorization';
-    public const AWS_SHA256_ALGORITHM = 'AWS4-HMAC-SHA256';
-    public const KEY_QUALIFIER = 'AWS4';
-    public const TERMINATION_STRING = 'aws4_request';
-    public const CREATE_GIFT_CARD_SERVICE = 'CreateGiftCard';
-    public const CANCEL_GIFT_CARD_SERVICE = 'CancelGiftCard';
+    const SERVICE_NAME = 'AGCODService';
+    const ACCEPT_HEADER = 'accept';
+    const CONTENT_HEADER = 'content-type';
+    const HOST_HEADER = 'host';
+    const X_AMZ_DATE_HEADER = 'x-amz-date';
+    const X_AMZ_TARGET_HEADER = 'x-amz-target';
+    const AUTHORIZATION_HEADER = 'Authorization';
+    const AWS_SHA256_ALGORITHM = 'AWS4-HMAC-SHA256';
+    const KEY_QUALIFIER = 'AWS4';
+    const TERMINATION_STRING = 'aws4_request';
+    const CREATE_GIFT_CARD_SERVICE = 'CreateGiftCard';
+    const CANCEL_GIFT_CARD_SERVICE = 'CancelGiftCard';
 
     private $_config;
 

@@ -51,7 +51,7 @@ class Client implements ClientInterface
 
     }
 
-    private function handleCurlError($url, $errno, $message): void
+    private function handleCurlError($url, $errno, $message)
     {
         switch ($errno) {
             case CURLE_COULDNT_CONNECT:
