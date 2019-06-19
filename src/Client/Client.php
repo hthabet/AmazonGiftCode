@@ -25,6 +25,7 @@ class Client implements ClientInterface
      *
      *
      * @return String
+     * @throws AmazonErrors
      */
     public function request($url, $headers, $params): string
     {

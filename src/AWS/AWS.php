@@ -12,7 +12,6 @@ namespace kamerk22\AmazonGiftCode\AWS;
 
 use kamerk22\AmazonGiftCode\Client\Client;
 use kamerk22\AmazonGiftCode\Config\Config;
-use kamerk22\AmazonGiftCode\Exceptions\AmazonErrors;
 use kamerk22\AmazonGiftCode\Response\CancelResponse;
 use kamerk22\AmazonGiftCode\Response\CreateResponse;
 
@@ -46,39 +45,42 @@ class AWS
 
 
     /**
-     * @param $amount
+     * @param float       $amount
+     *
+     * @param string|null $requestId
      *
      * @return CreateResponse
-     *
-     * @throws AmazonErrors
      */
-    public function getCode($amount): CreateResponse
+    public function getCode(float $amount, string $requestId = null): CreateResponse
     {
-        $serviceOperation = self::CREATE_GIFT_CARD_SERVICE;
-        $payload = $this->getGiftCardPayload($amount);
-        $canonicalRequest = $this->getCanonicalRequest($serviceOperation, $payload);
+        $payload = $this->getGiftCardPayload($amount, $requestId);
+        $canonicalRequest = $this->getCanonicalRequest(self::CREATE_GIFT_CARD_SERVICE, $payload);
         $dateTimeString = $this->getTimestamp();
-        $result = json_decode($this->makeRequest($payload, $canonicalRequest, $serviceOperation, $dateTimeString),
-            true);
+        $result = json_decode(
+            $this->makeRequest($payload, $canonicalRequest, self::CREATE_GIFT_CARD_SERVICE, $dateTimeString),
+            true
+        );
         return new CreateResponse($result);
 
     }
 
     /**
-     * @param $amount
+     * @param float  $amount
+     *
+     * @param string $requestId
      *
      * @return string
      */
-    public function getGiftCardPayload($amount, $creationId = null): string
+    public function getGiftCardPayload(float $amount, string $requestId = null): string
     {
-        $amount = trim($amount);
+        $creationRequestId = $requestId ?? time();
         $payload = [
-            "creationRequestId" => $this->_config->getPartner() . "_" . time(),
+            "creationRequestId" => $this->_config->getPartner() . "-" . $creationRequestId,
             'partnerId'         => $this->_config->getPartner(),
             'value'             =>
                 [
                     'currencyCode' => $this->_config->getCurrency(),
-                    'amount'       => (float)$amount
+                    'amount'       => $amount
                 ]
         ];
         return json_encode($payload);
@@ -156,7 +158,6 @@ class AWS
      */
     public function makeRequest($payload, $canonicalRequest, $serviceOperation, $dateTimeString): string
     {
-        $KEY_QUALIFIER = self::KEY_QUALIFIER;
         $canonicalRequestHash = $this->buildHash($canonicalRequest);
         $stringToSign = $this->buildStringToSign($canonicalRequestHash);
         $authorizationValue = $this->buildAuthSignature($stringToSign);
@@ -165,17 +166,16 @@ class AWS
         $endpoint = $this->_config->getEndpoint();
         $regionName = $this->getRegion();
 
-        $SERVICE_NAME = 'AGCODService';
-        $serviceTarget = 'com.amazonaws.agcod.' . $SERVICE_NAME . '.' . $serviceOperation;
+        $serviceTarget = 'com.amazonaws.agcod.' . self::SERVICE_NAME . '.' . $serviceOperation;
         $dateString = $this->getDateString();
 
-        $signatureAWSKey = $KEY_QUALIFIER . $secretKey;
+        $signatureAWSKey = self::KEY_QUALIFIER . $secretKey;
 
         $kDate = $this->hmac($dateString, $signatureAWSKey);
         $kDate_hexis = $this->hmac($dateString, $signatureAWSKey, false);
         $kRegion = $this->hmac($regionName, $kDate);
         $kRegion_hexis = $this->hmac($regionName, $kDate, false);
-        $kService_hexis = $this->hmac($SERVICE_NAME, $kRegion, false);
+        $kService_hexis = $this->hmac(self::SERVICE_NAME , $kRegion, false);
 
         $url = 'https://' . $endpoint . '/' . $serviceOperation;
         $headers = $this->buildHeaders($payload, $authorizationValue, $dateTimeString, $serviceTarget);

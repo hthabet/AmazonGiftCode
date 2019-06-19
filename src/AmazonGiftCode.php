@@ -4,7 +4,6 @@ namespace kamerk22\AmazonGiftCode;
 
 use kamerk22\AmazonGiftCode\AWS\AWS;
 use kamerk22\AmazonGiftCode\Config\Config;
-use kamerk22\AmazonGiftCode\Exceptions\AmazonErrors;
 
 class AmazonGiftCode
 {
@@ -37,25 +36,26 @@ class AmazonGiftCode
      * @return AmazonGiftCode
      */
     public static function make(
-        $key = null,
-        $secret = null,
-        $partner = null,
-        $endpoint = null,
-        $currency = null
+        $key,
+        $secret,
+        $partner,
+        $endpoint,
+        $currency
     ): AmazonGiftCode {
         return new static($key, $secret, $partner, $endpoint, $currency);
     }
 
     /**
-     * @param Float $value
+     * @param float       $value
+     *
+     * @param string|null $requestId
      *
      * @return Response\CreateResponse
      *
-     * @throws AmazonErrors
      */
-    public function buyGiftCard(Float $value): Response\CreateResponse
+    public function createGiftCard(float $value, string $requestId = null): Response\CreateResponse
     {
-        return (new AWS($this->_config))->getCode($value);
+        return (new AWS($this->_config))->getCode($value, $requestId);
     }
 
     /**
@@ -68,5 +68,4 @@ class AmazonGiftCode
     {
         return (new AWS($this->_config))->cancelCode($creationRequestId, $gcId);
     }
-
 }
