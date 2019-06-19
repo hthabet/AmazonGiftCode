@@ -6,7 +6,6 @@
  *
  */
 
-
 namespace kamerk22\AmazonGiftCode;
 
 use Illuminate\Support\ServiceProvider;
@@ -36,8 +35,9 @@ class AmazonGiftCodeServiceProvider extends ServiceProvider
         // Publishing the configuration file.
         $this->publishes([
             __DIR__ . '/../config/amazongiftcode.php' => config_path('amazongiftcode.php'),
-        ], 'amazongiftcode.config');
+        ], 'config');
 
+        $this->mergeConfigFrom(__DIR__ . '/../config/amazongiftcode.php', 'amazongiftcode');
     }
 
     /**
@@ -47,11 +47,15 @@ class AmazonGiftCodeServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/amazongiftcode.php', 'amazongiftcode');
-
         // Register the service the package provides.
-        $this->app->singleton('amazongiftcode', function ($app) {
-            return new AmazonGiftCode;
+        $this->app->bind(AmazonGiftCode::class, function ($app) {
+            return new AmazonGiftCode(
+                $app['config']['amazongiftcode']['key'],
+                $app['config']['amazongiftcode']['secret'],
+                $app['config']['amazongiftcode']['partner'],
+                $app['config']['amazongiftcode']['endpoint'],
+                $app['config']['amazongiftcode']['currency']
+            );
         });
     }
 
@@ -62,6 +66,6 @@ class AmazonGiftCodeServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['amazongiftcode'];
+        return [AmazonGiftCode::class];
     }
 }

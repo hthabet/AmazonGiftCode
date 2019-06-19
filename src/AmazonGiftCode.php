@@ -14,13 +14,13 @@ class AmazonGiftCode
     /**
      * AmazonGiftCode constructor.
      *
-     * @param null $key
-     * @param null $secret
-     * @param null $partner
-     * @param null $endpoint
-     * @param null $currency
+     * @param $key
+     * @param $secret
+     * @param $partner
+     * @param $endpoint
+     * @param $currency
      */
-    public function __construct($key = null, $secret = null, $partner = null, $endpoint = null, $currency = null)
+    public function __construct($key, $secret, $partner, $endpoint, $currency)
     {
         $this->_config = new Config($key, $secret, $partner, $endpoint, $currency);
     }

@@ -48,15 +48,13 @@ class Config implements ConfigInterface
      */
     private $_currency;
 
-
     public function __construct($key, $secret, $partner, $endpoint, $currency)
     {
-
-        $this->setAccessKey($key ?: config('amazongiftcode.key'));
-        $this->setSecret($secret ?: config('amazongiftcode.secret'));
-        $this->setPartner($partner ?: config('amazongiftcode.partner'));
-        $this->setEndpoint($endpoint ?: config('amazongiftcode.endpoint'));
-        $this->setCurrency($currency ?: config('amazongiftcode.currency'));
+        $this->setAccessKey($key);
+        $this->setSecret($secret);
+        $this->setPartner($partner);
+        $this->setEndpoint($endpoint);
+        $this->setCurrency($currency);
     }
 
     /**
