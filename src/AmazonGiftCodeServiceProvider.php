@@ -27,13 +27,27 @@ class AmazonGiftCodeServiceProvider extends ServiceProvider
     }
 
     /**
+     * Console-specific booting.
+     *
+     * @return void
+     */
+    protected function bootForConsole()
+    {
+        // Publishing the configuration file.
+        $this->publishes([
+            __DIR__ . '/../config/amazongiftcode.php' => config_path('amazongiftcode.php'),
+        ], 'amazongiftcode.config');
+
+    }
+
+    /**
      * Register any package services.
      *
      * @return void
      */
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/amazongiftcode.php', 'amazongiftcode');
+        $this->mergeConfigFrom(__DIR__ . '/../config/amazongiftcode.php', 'amazongiftcode');
 
         // Register the service the package provides.
         $this->app->singleton('amazongiftcode', function ($app) {
@@ -49,19 +63,5 @@ class AmazonGiftCodeServiceProvider extends ServiceProvider
     public function provides()
     {
         return ['amazongiftcode'];
-    }
-    
-    /**
-     * Console-specific booting.
-     *
-     * @return void
-     */
-    protected function bootForConsole()
-    {
-        // Publishing the configuration file.
-        $this->publishes([
-            __DIR__.'/../config/amazongiftcode.php' => config_path('amazongiftcode.php'),
-        ], 'amazongiftcode.config');
-
     }
 }

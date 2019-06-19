@@ -12,15 +12,16 @@ namespace kamerk22\AmazonGiftCode\Client;
 
 use Illuminate\Http\JsonResponse;
 use kamerk22\AmazonGiftCode\Exceptions\AmazonErrors;
+use RuntimeException;
 
 class Client implements ClientInterface
 {
 
     /**
      *
-     * @param string $url The URL being requested, including domain and protocol
-     * @param array $headers Headers to be used in the request
-     * @param array $params Can be nested for arrays and hashes
+     * @param string $url     The URL being requested, including domain and protocol
+     * @param array  $headers Headers to be used in the request
+     * @param array  $params  Can be nested for arrays and hashes
      *
      *
      * @return String
@@ -71,6 +72,6 @@ class Client implements ClientInterface
                 $msg = 'Unexpected error communicating with AWS. ' . $message;
         }
 
-        throw new \RuntimeException($msg);
+        throw new RuntimeException($msg);
     }
 }

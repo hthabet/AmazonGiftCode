@@ -60,6 +60,30 @@ class Config implements ConfigInterface
     }
 
     /**
+     * @param String $secret
+     *
+     * @return ConfigInterface
+     */
+    public function setSecret($secret): ConfigInterface
+    {
+        $this->_secretKey = $secret;
+
+        return $this;
+    }
+
+    /**
+     * @param String $partner
+     *
+     * @return ConfigInterface
+     */
+    public function setPartner($partner): ConfigInterface
+    {
+        $this->_partnerId = $partner;
+
+        return $this;
+    }
+
+    /**
      * @return String
      */
     public function getEndpoint(): string
@@ -67,9 +91,9 @@ class Config implements ConfigInterface
         return $this->_endpoint;
     }
 
-
     /**
      * @param $endpoint
+     *
      * @return ConfigInterface
      */
     public function setEndpoint($endpoint): ConfigInterface
@@ -89,6 +113,7 @@ class Config implements ConfigInterface
 
     /**
      * @param String $key
+     *
      * @return ConfigInterface
      */
     public function setAccessKey($key): ConfigInterface
@@ -107,17 +132,6 @@ class Config implements ConfigInterface
     }
 
     /**
-     * @param String $secret
-     * @return ConfigInterface
-     */
-    public function setSecret($secret): ConfigInterface
-    {
-        $this->_secretKey = $secret;
-
-        return $this;
-    }
-
-    /**
      * @return String
      */
     public function getCurrency(): string
@@ -127,6 +141,7 @@ class Config implements ConfigInterface
 
     /**
      * @param String $currency
+     *
      * @return ConfigInterface
      */
     public function setCurrency($currency): ConfigInterface
@@ -142,16 +157,5 @@ class Config implements ConfigInterface
     public function getPartner(): string
     {
         return $this->_partnerId;
-    }
-
-    /**
-     * @param String $partner
-     * @return ConfigInterface
-     */
-    public function setPartner($partner): ConfigInterface
-    {
-        $this->_partnerId = $partner;
-
-        return $this;
     }
 }

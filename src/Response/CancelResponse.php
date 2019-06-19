@@ -10,6 +10,8 @@
 namespace kamerk22\AmazonGiftCode\Response;
 
 
+use RuntimeException;
+
 class CancelResponse
 {
 
@@ -43,15 +45,36 @@ class CancelResponse
 
     /**
      * Response constructor.
+     *
      * @param $jsonResponse
      */
     public function __construct($jsonResponse)
     {
         $this->_raw_json = $jsonResponse;
-        $this->_status = TRUE;
+        $this->_status = true;
         $this->parseJsonResponse($jsonResponse);
     }
 
+    /**
+     * @param $jsonResponse
+     *
+     * @return CancelResponse
+     */
+    public function parseJsonResponse($jsonResponse): self
+    {
+        if (!is_array($jsonResponse)) {
+            throw new RuntimeException('Response must be a scalar value');
+        }
+        if (array_key_exists('gcId', $jsonResponse)) {
+            $this->_id = $jsonResponse['gcId'];
+        }
+        if (array_key_exists('creationRequestId', $jsonResponse)) {
+            $this->_creation_request_id = $jsonResponse['creationRequestId'];
+        }
+
+        return $this;
+
+    }
 
     /**
      * @return string
@@ -69,7 +92,6 @@ class CancelResponse
         return $this->_creation_request_id;
     }
 
-
     /**
      * @return string
      */
@@ -78,34 +100,12 @@ class CancelResponse
         return $this->_status;
     }
 
-
     /**
      * @return string
      */
     public function getRawJson(): string
     {
         return json_encode($this->_raw_json);
-    }
-
-
-    /**
-     * @param $jsonResponse
-     * @return CancelResponse
-     */
-    public function parseJsonResponse($jsonResponse): self
-    {
-        if (!is_array($jsonResponse)) {
-            throw new \RuntimeException('Response must be a scalar value');
-        }
-        if (array_key_exists('gcId', $jsonResponse)) {
-            $this->_id = $jsonResponse['gcId'];
-        }
-        if (array_key_exists('creationRequestId', $jsonResponse)) {
-            $this->_creation_request_id = $jsonResponse['creationRequestId'];
-        }
-
-        return $this;
-
     }
 
 }

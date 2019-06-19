@@ -10,6 +10,8 @@
 namespace kamerk22\AmazonGiftCode\Response;
 
 
+use RuntimeException;
+
 class CreateResponse
 {
 
@@ -63,15 +65,45 @@ class CreateResponse
 
     /**
      * Response constructor.
+     *
      * @param $jsonResponse
      */
     public function __construct($jsonResponse)
     {
         $this->_raw_json = $jsonResponse;
-        $this->_status = TRUE;
+        $this->_status = true;
         $this->parseJsonResponse($jsonResponse);
     }
 
+    /**
+     * @param $jsonResponse
+     *
+     * @return CreateResponse
+     */
+    public function parseJsonResponse($jsonResponse): self
+    {
+        if (!is_array($jsonResponse)) {
+            throw new RuntimeException('Response must be a scalar value');
+        }
+        if (array_key_exists('gcId', $jsonResponse)) {
+            $this->_id = $jsonResponse['gcId'];
+        }
+        if (array_key_exists('creationRequestId', $jsonResponse)) {
+            $this->_creation_request_id = $jsonResponse['creationRequestId'];
+        }
+        if (array_key_exists('gcClaimCode', $jsonResponse)) {
+            $this->_claim_code = $jsonResponse['gcClaimCode'];
+        }
+        if (array_key_exists('amount', $jsonResponse['cardInfo']['value'])) {
+            $this->_value = $jsonResponse['cardInfo']['value']['amount'];
+        }
+        if (array_key_exists('currencyCode', $jsonResponse['cardInfo']['value'])) {
+            $this->_currency = $jsonResponse['cardInfo']['value']['currencyCode'];
+        }
+
+        return $this;
+
+    }
 
     /**
      * @return string
@@ -88,7 +120,6 @@ class CreateResponse
     {
         return $this->_creation_request_id;
     }
-
 
     /**
      * @return string
@@ -122,42 +153,12 @@ class CreateResponse
         return $this->_status;
     }
 
-
     /**
      * @return string
      */
     public function getRawJson(): string
     {
         return json_encode($this->_raw_json);
-    }
-
-    /**
-     * @param $jsonResponse
-     * @return CreateResponse
-     */
-    public function parseJsonResponse($jsonResponse): self
-    {
-        if (!is_array($jsonResponse)) {
-            throw new \RuntimeException('Response must be a scalar value');
-        }
-        if (array_key_exists('gcId', $jsonResponse)) {
-            $this->_id = $jsonResponse['gcId'];
-        }
-        if (array_key_exists('creationRequestId', $jsonResponse)) {
-            $this->_creation_request_id = $jsonResponse['creationRequestId'];
-        }
-        if (array_key_exists('gcClaimCode', $jsonResponse)) {
-            $this->_claim_code = $jsonResponse['gcClaimCode'];
-        }
-        if (array_key_exists('amount', $jsonResponse['cardInfo']['value'])) {
-            $this->_value = $jsonResponse['cardInfo']['value']['amount'];
-        }
-        if (array_key_exists('currencyCode', $jsonResponse['cardInfo']['value'])) {
-            $this->_currency = $jsonResponse['cardInfo']['value']['currencyCode'];
-        }
-
-        return $this;
-
     }
 
 }

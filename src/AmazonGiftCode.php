@@ -26,7 +26,29 @@ class AmazonGiftCode
     }
 
     /**
+     * AmazonGiftCode make own client.
+     *
+     * @param null $key
+     * @param null $secret
+     * @param null $partner
+     * @param null $endpoint
+     * @param null $currency
+     *
+     * @return AmazonGiftCode
+     */
+    public static function make(
+        $key = null,
+        $secret = null,
+        $partner = null,
+        $endpoint = null,
+        $currency = null
+    ): AmazonGiftCode {
+        return new static($key, $secret, $partner, $endpoint, $currency);
+    }
+
+    /**
      * @param Float $value
+     *
      * @return Response\CreateResponse
      *
      * @throws AmazonErrors
@@ -36,31 +58,15 @@ class AmazonGiftCode
         return (new AWS($this->_config))->getCode($value);
     }
 
-
     /**
      * @param string $creationRequestId
      * @param string $gcId
+     *
      * @return Response\CancelResponse
      */
     public function cancelGiftCard(string $creationRequestId, string $gcId): Response\CancelResponse
     {
         return (new AWS($this->_config))->cancelCode($creationRequestId, $gcId);
-    }
-
-
-    /**
-     * AmazonGiftCode make own client.
-     *
-     * @param null $key
-     * @param null $secret
-     * @param null $partner
-     * @param null $endpoint
-     * @param null $currency
-     * @return AmazonGiftCode
-     */
-    public static function make($key = null, $secret = null, $partner = null, $endpoint = null, $currency = null): AmazonGiftCode
-    {
-        return new static($key, $secret, $partner, $endpoint, $currency);
     }
 
 }

@@ -36,6 +36,7 @@ class AWS
 
     /**
      * AWS constructor.
+     *
      * @param Config $config
      */
     public function __construct(Config $config)
@@ -46,6 +47,7 @@ class AWS
 
     /**
      * @param $amount
+     *
      * @return CreateResponse
      *
      * @throws AmazonErrors
@@ -56,24 +58,92 @@ class AWS
         $payload = $this->getGiftCardPayload($amount);
         $canonicalRequest = $this->getCanonicalRequest($serviceOperation, $payload);
         $dateTimeString = $this->getTimestamp();
-        $result = json_decode($this->makeRequest($payload, $canonicalRequest, $serviceOperation, $dateTimeString), true);
+        $result = json_decode($this->makeRequest($payload, $canonicalRequest, $serviceOperation, $dateTimeString),
+            true);
         return new CreateResponse($result);
 
     }
 
     /**
-     * @param $creationRequestId
-     * @param $gcId
-     * @return CancelResponse
+     * @param $amount
+     *
+     * @return string
      */
-    public function cancelCode($creationRequestId, $gcId): CancelResponse
+    public function getGiftCardPayload($amount, $creationId = null): string
     {
-        $serviceOperation = self::CANCEL_GIFT_CARD_SERVICE;
-        $payload = $this->getCancelGiftCardPayload($creationRequestId, $gcId);
-        $canonicalRequest = $this->getCanonicalRequest($serviceOperation, $payload);
+        $amount = trim($amount);
+        $payload = [
+            "creationRequestId" => $this->_config->getPartner() . "_" . time(),
+            'partnerId'         => $this->_config->getPartner(),
+            'value'             =>
+                [
+                    'currencyCode' => $this->_config->getCurrency(),
+                    'amount'       => (float)$amount
+                ]
+        ];
+        return json_encode($payload);
+    }
+
+    /**
+     * @param $serviceOperation
+     * @param $payload
+     *
+     * @return string
+     */
+    public function getCanonicalRequest($serviceOperation, $payload): string
+    {
+        $HOST_HEADER = self::HOST_HEADER;
+        $X_AMZ_DATE_HEADER = self::X_AMZ_DATE_HEADER;
+        $X_AMZ_TARGET_HEADER = self::X_AMZ_TARGET_HEADER;
+        $ACCEPT_HEADER = self::ACCEPT_HEADER;
+        $payloadHash = $this->buildHash($payload);
+        $canonicalHeaders = $this->buildCanonicalHeaders($serviceOperation);
+        $canonicalRequest = "POST\n/$serviceOperation\n\n$canonicalHeaders\n\n$ACCEPT_HEADER;$HOST_HEADER;$X_AMZ_DATE_HEADER;$X_AMZ_TARGET_HEADER\n$payloadHash";
+        return $canonicalRequest;
+    }
+
+    /**
+     * @param $data
+     *
+     * @return string
+     */
+    public function buildHash($data): string
+    {
+        return hash('sha256', $data);
+    }
+
+    /**
+     * @param $serviceOperation
+     *
+     * @return string
+     */
+    public function buildCanonicalHeaders($serviceOperation): string
+    {
+        $ACCEPT_HEADER = self::ACCEPT_HEADER;
+        $HOST_HEADER = self::HOST_HEADER;
+        $X_AMZ_DATE_HEADER = self::X_AMZ_DATE_HEADER;
+        $X_AMZ_TARGET_HEADER = self::X_AMZ_TARGET_HEADER;
         $dateTimeString = $this->getTimestamp();
-        $result = json_decode($this->makeRequest($payload, $canonicalRequest, $serviceOperation, $dateTimeString), true);
-        return new CancelResponse($result);
+        $endpoint = $this->_config->getEndpoint();
+        $contentType = $this->getContentType();
+        return
+            "$ACCEPT_HEADER:$contentType\n$HOST_HEADER:$endpoint\n$X_AMZ_DATE_HEADER:$dateTimeString\n$X_AMZ_TARGET_HEADER:com.amazonaws.agcod.AGCODService.$serviceOperation";
+    }
+
+    /**
+     * @return false|string
+     */
+    public function getTimestamp()
+    {
+        return gmdate('Ymd\THis\Z');
+    }
+
+    /**
+     * @return string
+     */
+    public function getContentType(): string
+    {
+        return 'application/json';
     }
 
     /**
@@ -81,6 +151,7 @@ class AWS
      * @param $canonicalRequest
      * @param $serviceOperation
      * @param $dateTimeString
+     *
      * @return String
      */
     public function makeRequest($payload, $canonicalRequest, $serviceOperation, $dateTimeString): string
@@ -112,30 +183,54 @@ class AWS
     }
 
     /**
-     * @param $payload
-     * @param $authorizationValue
-     * @param $dateTimeString
-     * @param $serviceTarget
-     * @return array
+     * @param $canonicalRequestHash
+     *
+     * @return string
      */
-    public function buildHeaders($payload, $authorizationValue, $dateTimeString, $serviceTarget): array
+    public function buildStringToSign($canonicalRequestHash): string
     {
-        $ACCEPT_HEADER = self::ACCEPT_HEADER;
-        $X_AMZ_DATE_HEADER = self::X_AMZ_DATE_HEADER;
-        $X_AMZ_TARGET_HEADER = self::X_AMZ_TARGET_HEADER;
-        $AUTHORIZATION_HEADER = self::AUTHORIZATION_HEADER;
-        return [
-            'Content-Type:' . $this->getContentType(),
-            'Content-Length: ' . strlen($payload),
-            $AUTHORIZATION_HEADER . ':' . $authorizationValue,
-            $X_AMZ_DATE_HEADER . ':' . $dateTimeString,
-            $X_AMZ_TARGET_HEADER . ':' . $serviceTarget,
-            $ACCEPT_HEADER . ':' . $this->getContentType()
-        ];
+        $AWS_SHA256_ALGORITHM = self::AWS_SHA256_ALGORITHM;
+        $TERMINATION_STRING = self::TERMINATION_STRING;
+        $SERVICE_NAME = self::SERVICE_NAME;
+        $regionName = $this->getRegion();
+        $dateTimeString = $this->getTimestamp();
+        $dateString = $this->getDateString();
+        $stringToSign = "$AWS_SHA256_ALGORITHM\n$dateTimeString\n$dateString/$regionName/$SERVICE_NAME/$TERMINATION_STRING\n$canonicalRequestHash";
+
+        return $stringToSign;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRegion(): string
+    {
+
+
+        $endpoint = $this->_config->getEndpoint();
+        $regionName = 'us-east-1';
+
+        if ($endpoint === 'agcod-v2-eu.amazon.com' || $endpoint === 'agcod-v2-eu-gamma.amazon.com') {
+            $regionName = 'eu-west-1';
+        } else {
+            if ($endpoint === 'agcod-v2-fe.amazon.com' || $endpoint === 'agcod-v2-fe-gamma.amazon.com') {
+                $regionName = 'us-west-2';
+            }
+        }
+        return $regionName;
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getDateString()
+    {
+        return substr($this->getTimestamp(), 0, 8);
     }
 
     /**
      * @param $stringToSign
+     *
      * @return string
      */
     public function buildAuthSignature($stringToSign): string
@@ -171,24 +266,8 @@ class AWS
     }
 
     /**
-     * @param $canonicalRequestHash
-     * @return string
-     */
-    public function buildStringToSign($canonicalRequestHash): string
-    {
-        $AWS_SHA256_ALGORITHM = self::AWS_SHA256_ALGORITHM;
-        $TERMINATION_STRING = self::TERMINATION_STRING;
-        $SERVICE_NAME = self::SERVICE_NAME;
-        $regionName = $this->getRegion();
-        $dateTimeString = $this->getTimestamp();
-        $dateString = $this->getDateString();
-        $stringToSign = "$AWS_SHA256_ALGORITHM\n$dateTimeString\n$dateString/$regionName/$SERVICE_NAME/$TERMINATION_STRING\n$canonicalRequestHash";
-
-        return $stringToSign;
-    }
-
-    /**
      * @param bool $rawOutput
+     *
      * @return string
      */
     public function buildDerivedKey($rawOutput = true): string
@@ -212,97 +291,10 @@ class AWS
     }
 
     /**
-     * @return string
-     */
-    public function getRegion(): string
-    {
-
-
-        $endpoint = $this->_config->getEndpoint();
-        $regionName = 'us-east-1';
-
-        if ($endpoint === 'agcod-v2-eu.amazon.com' || $endpoint === 'agcod-v2-eu-gamma.amazon.com') {
-            $regionName = 'eu-west-1';
-        } else if ($endpoint === 'agcod-v2-fe.amazon.com' || $endpoint === 'agcod-v2-fe-gamma.amazon.com') {
-            $regionName = 'us-west-2';
-        }
-        return $regionName;
-    }
-
-
-    /**
-     * @param $amount
-     * @return string
-     */
-    public function getGiftCardPayload($amount, $creationId = null): string
-    {
-        $amount = trim($amount);
-        $payload = [
-           "creationRequestId" => $this->_config->getPartner() . "_" . time(),
-            'partnerId' => $this->_config->getPartner(),
-            'value' =>
-                [
-                    'currencyCode' => $this->_config->getCurrency(),
-                    'amount' => (float)$amount
-                ]
-        ];
-        return json_encode($payload);
-    }
-
-    /**
-     * @param $creationRequestId
-     * @param $gcId
-     * @return string
-     */
-    public function getCancelGiftCardPayload($creationRequestId, $gcId): string
-    {
-        $gcResponseId = trim($gcId);
-        $payload = [
-            'creationRequestId' => $creationRequestId,
-            'partnerId' => $this->_config->getPartner(),
-            'gcId' => $gcResponseId
-        ];
-        return json_encode($payload);
-    }
-
-    /**
-     * @param $serviceOperation
-     * @param $payload
-     * @return string
-     */
-    public function getCanonicalRequest($serviceOperation, $payload): string
-    {
-        $HOST_HEADER = self::HOST_HEADER;
-        $X_AMZ_DATE_HEADER = self::X_AMZ_DATE_HEADER;
-        $X_AMZ_TARGET_HEADER = self::X_AMZ_TARGET_HEADER;
-        $ACCEPT_HEADER = self::ACCEPT_HEADER;
-        $payloadHash = $this->buildHash($payload);
-        $canonicalHeaders = $this->buildCanonicalHeaders($serviceOperation);
-        $canonicalRequest = "POST\n/$serviceOperation\n\n$canonicalHeaders\n\n$ACCEPT_HEADER;$HOST_HEADER;$X_AMZ_DATE_HEADER;$X_AMZ_TARGET_HEADER\n$payloadHash";
-        return $canonicalRequest;
-    }
-
-    /**
-     * @param $data
-     * @return string
-     */
-    public function buildHash($data): string
-    {
-        return hash('sha256', $data);
-    }
-
-    /**
-     * @return false|string
-     */
-    public function getTimestamp()
-    {
-        return gmdate('Ymd\THis\Z');
-    }
-
-    /**
-     * @param $data
-     * @param $key
+     * @param      $data
+     * @param      $key
      * @param bool $raw
+     *
      * @return string
      */
     public function hmac($data, $key, $raw = true): string
@@ -311,35 +303,60 @@ class AWS
     }
 
     /**
-     * @return bool|string
+     * @param $payload
+     * @param $authorizationValue
+     * @param $dateTimeString
+     * @param $serviceTarget
+     *
+     * @return array
      */
-    public function getDateString()
-    {
-        return substr($this->getTimestamp(), 0, 8);
-    }
-
-    /**
-     * @return string
-     */
-    public function getContentType(): string
-    {
-        return 'application/json';
-    }
-
-    /**
-     * @param $serviceOperation
-     * @return string
-     */
-    public function buildCanonicalHeaders($serviceOperation): string
+    public function buildHeaders($payload, $authorizationValue, $dateTimeString, $serviceTarget): array
     {
         $ACCEPT_HEADER = self::ACCEPT_HEADER;
-        $HOST_HEADER = self::HOST_HEADER;
         $X_AMZ_DATE_HEADER = self::X_AMZ_DATE_HEADER;
         $X_AMZ_TARGET_HEADER = self::X_AMZ_TARGET_HEADER;
+        $AUTHORIZATION_HEADER = self::AUTHORIZATION_HEADER;
+        return [
+            'Content-Type:' . $this->getContentType(),
+            'Content-Length: ' . strlen($payload),
+            $AUTHORIZATION_HEADER . ':' . $authorizationValue,
+            $X_AMZ_DATE_HEADER . ':' . $dateTimeString,
+            $X_AMZ_TARGET_HEADER . ':' . $serviceTarget,
+            $ACCEPT_HEADER . ':' . $this->getContentType()
+        ];
+    }
+
+    /**
+     * @param $creationRequestId
+     * @param $gcId
+     *
+     * @return CancelResponse
+     */
+    public function cancelCode($creationRequestId, $gcId): CancelResponse
+    {
+        $serviceOperation = self::CANCEL_GIFT_CARD_SERVICE;
+        $payload = $this->getCancelGiftCardPayload($creationRequestId, $gcId);
+        $canonicalRequest = $this->getCanonicalRequest($serviceOperation, $payload);
         $dateTimeString = $this->getTimestamp();
-        $endpoint = $this->_config->getEndpoint();
-        $contentType = $this->getContentType();
-        return
-            "$ACCEPT_HEADER:$contentType\n$HOST_HEADER:$endpoint\n$X_AMZ_DATE_HEADER:$dateTimeString\n$X_AMZ_TARGET_HEADER:com.amazonaws.agcod.AGCODService.$serviceOperation";
+        $result = json_decode($this->makeRequest($payload, $canonicalRequest, $serviceOperation, $dateTimeString),
+            true);
+        return new CancelResponse($result);
+    }
+
+    /**
+     * @param $creationRequestId
+     * @param $gcId
+     *
+     * @return string
+     */
+    public function getCancelGiftCardPayload($creationRequestId, $gcId): string
+    {
+        $gcResponseId = trim($gcId);
+        $payload = [
+            'creationRequestId' => $creationRequestId,
+            'partnerId'         => $this->_config->getPartner(),
+            'gcId'              => $gcResponseId
+        ];
+        return json_encode($payload);
     }
 }

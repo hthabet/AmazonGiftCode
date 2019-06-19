@@ -19,6 +19,7 @@ interface ConfigInterface
 
     /**
      * @param $endpoint
+     *
      * @return $this
      */
     public function setEndpoint($endpoint): ConfigInterface;
@@ -30,6 +31,7 @@ interface ConfigInterface
 
     /**
      * @param $key
+     *
      * @return $this
      */
     public function setAccessKey($key): ConfigInterface;
@@ -41,6 +43,7 @@ interface ConfigInterface
 
     /**
      * @param $secret
+     *
      * @return $this
      */
     public function setSecret($secret): ConfigInterface;
@@ -52,6 +55,7 @@ interface ConfigInterface
 
     /**
      * @param $currency
+     *
      * @return $this
      */
     public function setCurrency($currency): ConfigInterface;
@@ -63,6 +67,7 @@ interface ConfigInterface
 
     /**
      * @param $partner
+     *
      * @return $this
      */
     public function setPartner($partner): ConfigInterface;

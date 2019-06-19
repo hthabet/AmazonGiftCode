@@ -26,7 +26,7 @@ return [
     |
     */
 
-    'key' => env('GIFT_CARD_KEY', 'access_key'),
+    'key'    => env('GIFT_CARD_KEY', 'access_key'),
     'secret' => env('GIFT_CARD_SECRET', 'secret'),
 
     /*
@@ -42,16 +42,16 @@ return [
 
     'partner' => env('GIFT_CARD_PARTNER_ID', 'partner_id'),
 
-     /*
-     |--------------------------------------------------------------------------
-     | Amazon Gift Card Default Currency
-     |--------------------------------------------------------------------------
-     |
-     | Here you need to specified a currency code for gift card value.
-     | Supported currencies for gift card value are.
-     | 'USD', 'EUR', 'JPY', 'CNY', 'CAD' , 'AUD'
-     |
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Amazon Gift Card Default Currency
+    |--------------------------------------------------------------------------
+    |
+    | Here you need to specified a currency code for gift card value.
+    | Supported currencies for gift card value are.
+    | 'USD', 'EUR', 'JPY', 'CNY', 'CAD' , 'AUD'
+    |
+    */
 
     'currency' => env('GIFT_CARD_CURRENCY', 'USD'),
 
