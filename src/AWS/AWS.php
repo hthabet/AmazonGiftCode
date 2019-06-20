@@ -47,13 +47,13 @@ class AWS
     /**
      * @param float       $amount
      *
-     * @param string|null $requestId
+     * @param string|null $creationRequestId
      *
      * @return CreateResponse
      */
-    public function getCode(float $amount, string $requestId = null): CreateResponse
+    public function getCode(float $amount, string $creationRequestId = null): CreateResponse
     {
-        $payload = $this->getGiftCardPayload($amount, $requestId);
+        $payload = $this->getGiftCardPayload($amount, $creationRequestId);
         $canonicalRequest = $this->getCanonicalRequest(self::CREATE_GIFT_CARD_SERVICE, $payload);
         $dateTimeString = $this->getTimestamp();
         $result = json_decode(

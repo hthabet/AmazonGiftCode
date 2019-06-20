@@ -10,11 +10,12 @@
 namespace kamerk22\AmazonGiftCode\Response;
 
 
-use RuntimeException;
+use kamerk22\AmazonGiftCode\Exceptions\AmazonErrors;
+use kamerk22\AmazonGiftCode\Exceptions\RequestFailedException;
+use kamerk22\AmazonGiftCode\Exceptions\RequestResendException;
 
-class CreateResponse
+class CreateResponse extends Response
 {
-
     /**
      * Amazon Gift Card gcId.
      *
@@ -49,42 +50,28 @@ class CreateResponse
      * @var string
      */
     protected $_currency;
-    /**
-     * Amazon Gift Card status
-     *
-     * @var string
-     */
-    protected $_status;
-
-    /**
-     * Amazon Gift Card Raw JSON
-     *
-     * @var string
-     */
-    protected $_raw_json;
-
-    /**
-     * Response constructor.
-     *
-     * @param $jsonResponse
-     */
-    public function __construct($jsonResponse)
-    {
-        $this->_raw_json = $jsonResponse;
-        $this->_status = true;
-        $this->parseJsonResponse($jsonResponse);
-    }
 
     /**
      * @param $jsonResponse
      *
      * @return CreateResponse
+     * @throws RequestFailedException
+     * @throws RequestResendException
      */
     public function parseJsonResponse($jsonResponse): self
     {
         if (!is_array($jsonResponse)) {
-            throw new RuntimeException('Response must be a scalar value');
+            throw new AmazonErrors('Response must be a scalar value');
         }
+
+        if ($jsonResponse['status'] === Response::FAILURE_STATUS) {
+            throw new RequestFailedException();
+        }
+
+        if ($jsonResponse['status'] === Response::RESEND_STATUS) {
+            throw new RequestResendException();
+        }
+
         if (array_key_exists('gcId', $jsonResponse)) {
             $this->_id = $jsonResponse['gcId'];
         }
@@ -102,7 +89,6 @@ class CreateResponse
         }
 
         return $this;
-
     }
 
     /**
@@ -148,17 +134,8 @@ class CreateResponse
     /**
      * @return string
      */
-    public function getStatus(): string
-    {
-        return $this->_status;
-    }
-
-    /**
-     * @return string
-     */
     public function getRawJson(): string
     {
         return json_encode($this->_raw_json);
     }
-
 }

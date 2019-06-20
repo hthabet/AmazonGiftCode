@@ -4,6 +4,7 @@ namespace kamerk22\AmazonGiftCode;
 
 use kamerk22\AmazonGiftCode\AWS\AWS;
 use kamerk22\AmazonGiftCode\Config\Config;
+use kamerk22\AmazonGiftCode\Exceptions\RequestResendException;
 
 class AmazonGiftCode
 {
@@ -48,14 +49,25 @@ class AmazonGiftCode
     /**
      * @param float       $value
      *
-     * @param string|null $requestId
+     * @param string|null $creationRequestId
+     *
+     * @param int         $retryNumber
      *
      * @return Response\CreateResponse
-     *
      */
-    public function createGiftCard(float $value, string $requestId = null): Response\CreateResponse
-    {
-        return (new AWS($this->_config))->getCode($value, $requestId);
+    public function createGiftCard(
+        float $value,
+        string $creationRequestId = null,
+        $retryNumber = 0
+    ): Response\CreateResponse {
+
+        try {
+            return (new AWS($this->_config))->getCode($value, $creationRequestId);
+        } catch (RequestResendException $exception) {
+            $retryNumber++;
+            sleep($retryNumber);
+            return $this->createGiftCard($value, $creationRequestId, $retryNumber);
+        }
     }
 
     /**

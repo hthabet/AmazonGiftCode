@@ -30,32 +30,6 @@ class CancelResponse
     protected $_creation_request_id;
 
     /**
-     * Amazon Gift Card status
-     *
-     * @var string
-     */
-    protected $_status;
-
-    /**
-     * Amazon Gift Card Raw JSON
-     *
-     * @var string
-     */
-    protected $_raw_json;
-
-    /**
-     * Response constructor.
-     *
-     * @param $jsonResponse
-     */
-    public function __construct($jsonResponse)
-    {
-        $this->_raw_json = $jsonResponse;
-        $this->_status = true;
-        $this->parseJsonResponse($jsonResponse);
-    }
-
-    /**
      * @param $jsonResponse
      *
      * @return CancelResponse
@@ -90,14 +64,6 @@ class CancelResponse
     public function getCreationRequestId(): string
     {
         return $this->_creation_request_id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getStatus(): string
-    {
-        return $this->_status;
     }
 
     /**
