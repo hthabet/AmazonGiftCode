@@ -74,10 +74,19 @@ class AmazonGiftCode
      * @param string $creationRequestId
      * @param string $gcId
      *
+     * @param int    $retryNumber
+     *
      * @return Response\CancelResponse
      */
-    public function cancelGiftCard(string $creationRequestId, string $gcId): Response\CancelResponse
+    public function cancelGiftCard(string $creationRequestId, string $gcId, $retryNumber = 0): Response\CancelResponse
     {
-        return (new AWS($this->_config))->cancelCode($creationRequestId, $gcId);
+        try {
+            return (new AWS($this->_config))->cancelCode($creationRequestId, $gcId);
+        } catch (RequestResendException $exception) {
+            $retryNumber++;
+            sleep($retryNumber);
+            return $this->cancelGiftCard($value, $creationRequestId, $retryNumber);
+        }
+
     }
 }

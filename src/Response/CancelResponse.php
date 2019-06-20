@@ -10,11 +10,12 @@
 namespace kamerk22\AmazonGiftCode\Response;
 
 
+use kamerk22\AmazonGiftCode\Exceptions\RequestFailedException;
+use kamerk22\AmazonGiftCode\Exceptions\RequestResendException;
 use RuntimeException;
 
-class CancelResponse
+class CancelResponse extends Response
 {
-
     /**
      * Amazon Gift Card gcId.
      *
@@ -33,12 +34,23 @@ class CancelResponse
      * @param $jsonResponse
      *
      * @return CancelResponse
+     * @throws RequestFailedException
+     * @throws RequestResendException
      */
     public function parseJsonResponse($jsonResponse): self
     {
         if (!is_array($jsonResponse)) {
             throw new RuntimeException('Response must be a scalar value');
         }
+
+        if ($jsonResponse['status'] === Response::FAILURE_STATUS) {
+            throw new RequestFailedException('Request failed');
+        }
+
+        if ($jsonResponse['status'] === Response::RESEND_STATUS) {
+            throw new RequestResendException('Request must be retried');
+        }
+
         if (array_key_exists('gcId', $jsonResponse)) {
             $this->_id = $jsonResponse['gcId'];
         }
@@ -47,7 +59,6 @@ class CancelResponse
         }
 
         return $this;
-
     }
 
     /**
@@ -65,13 +76,4 @@ class CancelResponse
     {
         return $this->_creation_request_id;
     }
-
-    /**
-     * @return string
-     */
-    public function getRawJson(): string
-    {
-        return json_encode($this->_raw_json);
-    }
-
 }

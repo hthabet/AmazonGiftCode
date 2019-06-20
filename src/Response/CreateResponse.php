@@ -130,12 +130,4 @@ class CreateResponse extends Response
     {
         return $this->_currency;
     }
-
-    /**
-     * @return string
-     */
-    public function getRawJson(): string
-    {
-        return json_encode($this->_raw_json);
-    }
 }
